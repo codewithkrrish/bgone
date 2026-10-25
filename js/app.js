@@ -248,7 +248,9 @@ async function removeWithAi(item) {
 
 async function removeWithColor(item) {
   await ensureOriginal(item);
-  const { imageData } = item;
+  // ensureOriginal stores the decoded pixels as originalImageData (not
+  // `imageData` — that name belongs to result objects only).
+  const imageData = item.originalImageData;
   const bg = pickedBg || sampleBackgroundColor(imageData.data, imageData.width, imageData.height);
   const tolerance = Number(els.toleranceRange.value);
   const feather = Number(els.featherRange.value);
