@@ -4,7 +4,7 @@ I kept running into the same problem with profile pictures and product shots: ev
 
 BGone removes backgrounds entirely in your browser. There are two ways to do it: an AI segmentation model that runs on your own machine, and a fast colour key for plain backdrops. Either way, you get a transparent PNG, or the subject over a solid colour, a gradient, a blurred version of the original, or an image of your own.
 
-**Live:** https://bgone.vercel.app
+**Live:** https://bgone-app.vercel.app
 
 ## What it does
 
