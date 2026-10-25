@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BGone — Free AI Background Remover, 100% In Your Browser</title>
+  <meta name="description" content="Remove photo backgrounds right in your browser with an on-device AI model or a fast colour key. Transparent PNG, new backgrounds, batch export as ZIP. No uploads, no sign-up, no ads." />
+  <meta name="theme-color" content="#0B0B0F" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://bgone.vercel.app/" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="BGone — Remove photo backgrounds in your browser" />
+  <meta property="og:description" content="AI background removal that never uploads your photos. Transparent PNG or a brand-new background, batch processed, downloaded as a ZIP." />
+  <meta property="og:site_name" content="BGone" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="BGone — Browser AI Background Remover" />
+  <meta name="twitter:description" content="Remove photo backgrounds in your browser. Your photos never leave your device." />
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <!-- JSZip powers "Download all as ZIP". app.js checks for it and falls
+       back to sequential downloads if this CDN is unreachable. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="./" aria-label="BGone home">
+        <span class="brand-mark" aria-hidden="true">B</span>
+        <span>BGone</span>
+      </a>
+      <nav class="header-nav" aria-label="Primary">
+        <a href="#tool">Remover</a>
+        <a href="#how">How it works</a>
+        <a class="btn-github" href="https://github.com/codewithkrrish/bgone" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <span class="eyebrow">100% in your browser</span>
+      <h1>Backgrounds, gone.<br /><span>Nothing leaves your device.</span></h1>
+      <p>Remove a photo's background with an AI model that runs on your own machine — or a fast colour key for plain backdrops. Then keep it transparent or drop in a new background.</p>
+      <ul class="hero-points">
+        <li>Private by design</li>
+        <li>AI + colour-key modes</li>
+        <li>Batch up to 10 photos</li>
+        <li>Free, forever</li>
+      </ul>
+    </section>
+
+    <section class="tool-section container" id="tool" aria-label="Background remover">
+      <p class="section-label">Dropzone</p>
+      <div
+        class="dropzone"
+        id="dropzone"
+        tabindex="0"
+        role="button"
+        aria-label="Add images. Press Enter to browse, or drag and drop image files here."
+      >
+        <div class="dropzone-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m6 10 6-6 6 6"/><path d="M4 20h16"/></svg>
+        </div>
+        <h2>Drag and drop photos here</h2>
+        <p>or <span class="browse">browse from your device</span> — you can also paste with Ctrl+V</p>
+        <p class="dropzone-formats">JPG &nbsp;·&nbsp; PNG &nbsp;·&nbsp; WEBP &nbsp;·&nbsp; UP TO 10 AT ONCE</p>
+        <input
+          class="visually-hidden"
+          type="file"
+          id="fileInput"
+          accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+          multiple
+          tabindex="-1"
+          aria-hidden="true"
+        />
+      </div>
+      <p class="sample-line">No photo handy? <button class="link-btn" type="button" id="sampleBtn">Use a sample photo</button> to try it instantly.</p>
+
+      <div class="controls" aria-label="Removal settings">
+        <p class="section-label">Removal method</p>
+        <div class="mode-row" role="radiogroup" aria-label="Removal method">
+          <label class="mode-card">
+            <input type="radio" name="mode" id="modeAi" value="ai" checked />
+            <span class="mode-title">AI removal</span>
+            <span class="mode-desc">On-device segmentation. Best for people, pets and products on any background. First run downloads the model (about 40 MB, cached after that).</span>
+          </label>
+          <label class="mode-card">
+            <input type="radio" name="mode" id="modeColor" value="color" />
+            <span class="mode-title">Colour key</span>
+            <span class="mode-desc">Instant, no download. Best for plain or green-screen backdrops. Click a photo below to pick the exact background colour.</span>
+          </label>
+        </div>
+
+        <div id="colorControls" hidden>
+          <div class="controls-grid">
+            <fieldset class="field">
+              <legend>Tolerance</legend>
+              <div class="quality-row">
+                <input type="range" id="toleranceRange" min="0" max="200" step="1" value="60" />
+                <span class="quality-value" id="toleranceValue">60</span>
+              </div>
+              <p class="field-hint">How far a colour can stray from the background colour and still be removed. Higher catches uneven lighting; too high eats the subject's edges.</p>
+            </fieldset>
+            <fieldset class="field">
+              <legend>Edge feather</legend>
+              <div class="quality-row">
+                <input type="range" id="featherRange" min="0" max="80" step="1" value="24" />
+                <span class="quality-value" id="featherValue">24</span>
+              </div>
+              <p class="field-hint">Softens the cut edge so it blends instead of looking clipped. 20–30 works for most photos.</p>
+            </fieldset>
+            <div class="field">
+              <span class="field-label">Background colour</span>
+              <div class="picked-row">
+                <span class="picked-swatch" id="pickedSwatch" aria-hidden="true"></span>
+                <p class="field-hint picked-label" id="pickedLabel">Auto: the background colour is sampled from the photo corners.</p>
+              </div>
+              <button class="btn btn-ghost btn-small" type="button" id="clearPickedBtn">Use auto</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="section-label settings-gap">New background</p>
+        <div class="controls-grid">
+          <div class="field">
+            <label for="bgMode">Background</label>
+            <select id="bgMode">
+              <option value="transparent" selected>Transparent PNG</option>
+              <option value="solid">Solid colour</option>
+              <option value="gradient">Gradient</option>
+              <option value="blur">Blurred original</option>
+              <option value="custom">Your own image</option>
+            </select>
+            <p class="field-hint">Applies to every download. Change it any time — results re-render from the cutout, no re-processing needed.</p>
+          </div>
+          <div class="field" id="solidRow" hidden>
+            <span class="field-label">Colour</span>
+            <div class="swatch-row">
+              <button class="swatch is-active" type="button" data-color="#F5F5F7" style="background:#F5F5F7" aria-label="White"></button>
+              <button class="swatch" type="button" data-color="#0B0B0F" style="background:#0B0B0F" aria-label="Black"></button>
+              <button class="swatch" type="button" data-color="#E5484D" style="background:#E5484D" aria-label="Red"></button>
+              <button class="swatch" type="button" data-color="#1E6FD9" style="background:#1E6FD9" aria-label="Blue"></button>
+              <button class="swatch" type="button" data-color="#30A46C" style="background:#30A46C" aria-label="Green"></button>
+              <button class="swatch" type="button" data-color="#F5A524" style="background:#F5A524" aria-label="Amber"></button>
+            </div>
+            <input type="color" id="customSolid" value="#F5F5F7" aria-label="Custom solid colour" />
+          </div>
+          <div class="field" id="gradientRow" hidden>
+            <label for="gradientSelect">Gradient preset</label>
+            <select id="gradientSelect">
+              <option value="sunset" selected>Sunset — red to amber</option>
+              <option value="ocean">Ocean — blue to black</option>
+              <option value="violet">Violet — purple to red</option>
+              <option value="mint">Mint — green to black</option>
+              <option value="blush">Blush — pink to white</option>
+              <option value="mono">Mono — dark grey to white</option>
+            </select>
+          </div>
+          <div class="field" id="blurRow" hidden>
+            <fieldset class="field">
+              <legend>Blur strength</legend>
+              <div class="quality-row">
+                <input type="range" id="blurRange" min="2" max="40" step="1" value="14" />
+                <span class="quality-value" id="blurValue">14px</span>
+              </div>
+              <p class="field-hint">The original photo, blurred behind the subject — the classic portrait-mode look.</p>
+            </fieldset>
+          </div>
+          <div class="field" id="customRow" hidden>
+            <span class="field-label">Background image</span>
+            <label class="btn btn-secondary btn-small file-label" for="customBgInput">Choose image</label>
+            <input class="visually-hidden" type="file" id="customBgInput" accept="image/*" />
+            <p class="field-hint" id="customBgName">Pick any image — it is cover-fitted behind the subject.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress" id="progressWrap" hidden>
+        <progress id="progressBar" value="0" max="100"></progress>
+        <p class="progress-text" id="progressText" aria-live="polite"></p>
+      </div>
+
+      <div class="results-toolbar" id="resultsToolbar">
+        <div class="stats" id="stats" aria-live="polite"></div>
+        <div class="toolbar-actions">
+          <button class="btn btn-ghost btn-small" type="button" id="clearAllBtn">Clear all</button>
+          <button class="btn btn-secondary btn-small" type="button" id="processAllBtn" disabled>Process all</button>
+          <button class="btn btn-primary btn-small" type="button" id="downloadAllBtn" disabled>Download all (ZIP)</button>
+        </div>
+      </div>
+
+      <div class="empty-state" id="emptyState">
+        <h3>No photos yet</h3>
+        <p>Add up to 10 photos above. AI mode handles busy backgrounds; Colour mode is instant on plain ones.</p>
+      </div>
+
+      <div class="results-grid" id="resultsGrid" aria-live="polite"></div>
+
+      <p class="small-print">
+        AI mode downloads a segmentation model (about 40 MB) on first use and caches it in your browser — later runs are fast.
+        AI quality varies by photo: fine hair, glass and busy backgrounds are the hardest cases, and no tool gets them perfect every time.
+        Colour mode only removes background that is connected to the photo's edges, so a matching colour inside the subject is kept.
+        If the AI library cannot load (offline or blocked CDN), Colour mode still works fully.
+      </p>
+    </section>
+
+    <section class="features container" id="how">
+      <p class="section-label">How it works</p>
+      <div class="features-grid">
+        <article class="feature">
+          <h3>Private by design</h3>
+          <p>BGone decodes and segments everything with your browser's own APIs. There is no server upload, so there is nothing to leak, store, or queue behind.</p>
+        </article>
+        <article class="feature">
+          <h3>Two ways to cut out</h3>
+          <p>AI segmentation for real-world photos, and a flood-fill colour key for studio-style plain backdrops — with feathered edges so cuts don't look clipped.</p>
+        </article>
+        <article class="feature">
+          <h3>Honest before &amp; after</h3>
+          <p>Click Compare on any result to drag a slider between the original and the cutout, and download it transparent or over a background of your choice.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>Built by <a href="https://github.com/codewithkrrish" target="_blank" rel="noopener noreferrer">krrish</a> · <a href="https://github.com/codewithkrrish/bgone" target="_blank" rel="noopener noreferrer">BGone on GitHub</a> · <a href="https://www.instagram.com/krrishx.ai" target="_blank" rel="noopener noreferrer">Instagram</a></div>
+      <div class="footer-note">Your photos are processed locally in your browser and never uploaded.</div>
+    </div>
+  </footer>
+
+  <!-- Comparison modal -->
+  <div class="modal-backdrop" id="compareModal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Before and after comparison">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" data-modal-title>Image</h2>
+          <p class="modal-sub" data-modal-sub></p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal aria-label="Close comparison">×</button>
+      </div>
+
+      <div class="compare-wrap" data-compare-wrap>
+        <span class="compare-label is-left">Result</span>
+        <span class="compare-label is-right">Original</span>
+        <img data-compare-original alt="Original image" />
+        <div class="compare-after" data-compare-after>
+          <img data-compare-compressed alt="Background removed image" />
+        </div>
+        <div class="compare-divider" data-compare-divider style="left: 50%;"></div>
+        <button class="compare-handle" type="button" data-compare-handle style="left: 50%;" aria-label="Comparison slider handle">↔</button>
+      </div>
+      <input class="compare-range" type="range" min="0" max="100" value="50" data-compare-range aria-label="Comparison slider" />
+
+      <div class="modal-actions">
+        <button class="btn btn-primary" type="button" id="modalDownloadBtn">Download result</button>
+        <button class="btn btn-secondary" type="button" data-close-modal>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+</body>
+</html>
